@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EclipseX - Minimal Eclipse Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #1d1d1f;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            overflow-x: hidden;
+        }
+        
+        .ios-card {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        
+        .ios-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+        
+        .ios-card:active {
+            transform: scale(0.98);
+        }
+        
+        .tab {
+            position: relative;
+            padding-bottom: 16px;
+            margin: 0 20px;
+            color: #86868b;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            font-size: 17px;
+        }
+        
+        .tab.active {
+            color: #007aff;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #007aff;
+            border-radius: 3px;
+        }
+        
+        .countdown-box {
+            background-color: #f2f2f7;
+            border-radius: 20px;
+            min-width: 70px;
+            text-align: center;
+            padding: 20px 16px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        
+        .countdown-box:hover {
+            background-color: #e5e5ea;
+            transform: translateY(-2px);
+        }
+        
+        .countdown-box:active {
+            transform: scale(0.95);
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f2f2f7;
+            border-top: 3px solid #007aff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .solar-icon {
+            color: #ff9500;
+        }
+        
+        .lunar-icon {
+            color: #8e8e93;
+        }
+        
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #007aff, #5856d6);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .logo:active {
+            transform: scale(0.95);
+        }
+        
+        .eclipse-type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: -0.41px;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        
+        .solar-badge {
+            background-color: #fff9db;
+            color: #ff9500;
+        }
+        
+        .lunar-badge {
+            background-color: #f2f2f7;
+            color: #8e8e93;
+        }
+        
+        .time-display {
+            font-family: 'Inter', monospace;
+            font-variant-numeric: tabular-nums;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            letter-spacing: -0.41px;
+        }
+        
+        .section-title {
+            font-size: clamp(24px, 5vw, 32px);
+            font-weight: 700;
+            letter-spacing: -0.41px;
+            line-height: 1.2;
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.41px;
+        }
+        
+        .card-subtitle {
+            font-size: 17px;
+            color: #86868b;
+            letter-spacing: -0.41px;
+        }
+        
+        .info-label {
+            font-size: 13px;
+            color: #86868b;
+            letter-spacing: -0.41px;
+            text-transform: uppercase;
+        }
+        
+        .info-value {
+            font-size: 17px;
+            font-weight: 500;
+            letter-spacing: -0.41px;
+        }
+        
+        .countdown-number {
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 700;
+            letter-spacing: -0.41px;
+            line-height: 1;
+        }
+        
+        .countdown-label {
+            font-size: 12px;
+            color: #86868b;
+            letter-spacing: -0.41px;
+            text-transform: uppercase;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0;
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            
+            .tab {
+                font-size: 16px;
+                padding-bottom: 14px;
+                margin: 0 16px;
+            }
+            
+            .ios-card {
+                border-radius: 16px;
+            }
+            
+            .countdown-box {
+                min-width: 60px;
+                padding: 16px 12px;
+            }
+            
+            .eclipse-type-badge {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+            
+            .time-display {
+                font-size: 16px;
+            }
+            
+            .card-title {
+                font-size: 18px;
+            }
+            
+            .info-label {
+                font-size: 12px;
+            }
+            
+            .info-value {
+                font-size: 16px;
+            }
+        }
+        
+        .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .border-smooth {
+            border-radius: 12px;
+        }
+        
+        .border-card {
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <header>
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-center">
+                <div class="flex items-center space-x-3">
+                    <div class="logo touch-target">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <h1 class="text-2xl font-semibold">EclipseX</h1>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
+        <section class="mb-12">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="section-title text-center mb-8 fade-in">Next Eclipse</h2>
+                <div id="countdownContainer" class="ios-card p-8 slide-up">
+                    <div class="flex justify-center mb-6">
+                        <div class="loading-spinner"></div>
+                    </div>
+                    <p class="text-center text-gray-500">Loading eclipse data...</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <div class="flex justify-center overflow-x-auto">
+                <div class="flex items-center min-w-max">
+                    <button class="tab active touch-target" data-tab="solar">
+                        <i class="fas fa-sun solar-icon mr-2"></i>
+                        Solar
+                    </button>
+                    <button class="tab touch-target" data-tab="lunar">
+                        <i class="fas fa-moon lunar-icon mr-2"></i>
+                        Lunar
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="solarSection" class="mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full flex justify-center py-12">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lunarSection" class="mb-12 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full flex justify-center py-12">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="max-w-4xl mx-auto">
+            <div class="ios-card p-8 fade-in">
+                <h3 class="card-title mb-6 text-center">About Eclipses</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="card-subtitle mb-3 flex items-center">
+                            <i class="fas fa-sun solar-icon mr-2"></i>
+                            Solar Eclipse
+                        </h4>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Occurs when the Moon passes between Earth and the Sun, temporarily blocking the Sun's light. 
+                            Types include Total, Partial, and Annular eclipses.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="card-subtitle mb-3 flex items-center">
+                            <i class="fas fa-moon lunar-icon mr-2"></i>
+                            Lunar Eclipse
+                        </h4>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Happens when Earth passes between the Sun and Moon, casting Earth's shadow on the Moon. 
+                            Safe to view with the naked eye.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-16 py-8 border-t border-gray-200">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-500">Made with ❤️ by Sauravhhh</p>
+            <p class="text-gray-400 text-sm mt-1">Data provided by NASA/ISRO</p>
+        </div>
+    </footer>
+
+    <script>
+        const eclipseData = {
+            solar: [
+                { date: '2025-03-29', type: 'Partial Solar Eclipse', startTime: '10:05', endTime: '13:30', duration: '3h 25m', visibility: 'North America, Europe, North/West Asia' },
+                { date: '2026-08-12', type: 'Total Solar Eclipse', startTime: '17:45', endTime: '20:15', duration: '2h 30m', visibility: 'North America, Greenland, Europe' },
+                { date: '2027-02-06', type: 'Annular Solar Eclipse', startTime: '14:20', endTime: '17:40', duration: '3h 20m', visibility: 'South America, Atlantic, Africa' },
+                { date: '2028-01-26', type: 'Annular Solar Eclipse', startTime: '09:15', endTime: '12:45', duration: '3h 30m', visibility: 'South America, Atlantic' },
+                { date: '2028-07-22', type: 'Total Solar Eclipse', startTime: '16:30', endTime: '19:00', duration: '2h 30m', visibility: 'Australia, New Zealand' },
+                { date: '2029-01-14', type: 'Partial Solar Eclipse', startTime: '11:00', endTime: '14:30', duration: '3h 30m', visibility: 'North America, Central America' },
+                { date: '2030-06-01', type: 'Annular Solar Eclipse', startTime: '13:45', endTime: '17:15', duration: '3h 30m', visibility: 'North Africa, Europe, Asia' },
+                { date: '2030-11-25', type: 'Total Solar Eclipse', startTime: '18:00', endTime: '20:30', duration: '2h 30m', visibility: 'Southern Africa, Indian Ocean, Australia' }
+            ],
+            lunar: [
+                { date: '2025-03-14', type: 'Total Lunar Eclipse', startTime: '01:25', endTime: '06:35', duration: '5h 10m', visibility: 'Americas, Antarctica, Western Europe, Africa' },
+                { date: '2025-09-07', type: 'Total Lunar Eclipse', startTime: '18:15', endTime: '23:30', duration: '5h 15m', visibility: 'Europe, Africa, Asia, Australia' },
+                { date: '2026-03-03', type: 'Total Lunar Eclipse', startTime: '11:20', endTime: '16:35', duration: '5h 15m', visibility: 'Americas, Pacific, Antarctica' },
+                { date: '2026-08-28', type: 'Partial Lunar Eclipse', startTime: '09:45', endTime: '13:15', duration: '3h 30m', visibility: 'Asia, Australia, Pacific, Americas' },
+                { date: '2027-02-20', type: 'Penumbral Lunar Eclipse', startTime: '00:15', endTime: '04:25', duration: '4h 10m', visibility: 'Americas, Europe, Africa, Western Asia' },
+                { date: '2027-08-17', type: 'Partial Lunar Eclipse', startTime: '17:30', endTime: '21:00', duration: '3h 30m', visibility: 'Asia, Australia, Pacific, Americas' },
+                { date: '2028-01-12', type: 'Total Lunar Eclipse', startTime: '02:30', endTime: '07:45', duration: '5h 15m', visibility: 'Americas, Europe, Africa, Antarctica' },
+                { date: '2028-07-06', type: 'Total Lunar Eclipse', startTime: '19:20', endTime: '00:35', duration: '5h 15m', visibility: 'Asia, Australia, Pacific, Americas' },
+                { date: '2029-01-01', type: 'Total Lunar Eclipse', startTime: '03:45', endTime: '09:00', duration: '5h 15m', visibility: 'Asia, Australia, Pacific, Antarctica' },
+                { date: '2029-06-26', type: 'Partial Lunar Eclipse', startTime: '15:30', endTime: '19:00', duration: '3h 30m', visibility: 'Americas, Pacific, Antarctica' },
+                { date: '2029-12-20', type: 'Total Lunar Eclipse', startTime: '22:15', endTime: '03:30', duration: '5h 15m', visibility: 'Americas, Europe, Africa, Asia' },
+                { date: '2030-06-15', type: 'Partial Lunar Eclipse', startTime: '10:45', endTime: '14:15', duration: '3h 30m', visibility: 'Africa, Europe, Asia, Australia' },
+                { date: '2030-12-09', type: 'Total Lunar Eclipse', startTime: '16:30', endTime: '21:45', duration: '5h 15m', visibility: 'Asia, Australia, Pacific, Americas' }
+            ]
+        };
+
+        function formatTime(time24) {
+            const [hours, minutes] = time24.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minutes} ${ampm}`;
+        }
+
+        let countdownInterval;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabs();
+            displayEclipseData();
+            updateCountdown();
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('section').forEach(section => {
+                observer.observe(section);
+            });
+        });
+        
+        function initializeTabs() {
+            const tabBtns = document.querySelectorAll('.tab');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (tabName === 'solar') {
+                        document.getElementById('solarSection').classList.remove('hidden');
+                        document.getElementById('lunarSection').classList.add('hidden');
+                    } else {
+                        document.getElementById('solarSection').classList.add('hidden');
+                        document.getElementById('lunarSection').classList.remove('hidden');
+                    }
+                });
+            });
+        }
+        
+        function displayEclipseData() {
+            displaySolarEclipses();
+            displayLunarEclipses();
+        }
+        
+        function displaySolarEclipses() {
+            const container = document.getElementById('solarSection');
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${eclipseData.solar.map((eclipse, index) => createEclipseCard(eclipse, 'solar', index)).join('')}
+                </div>
+            `;
+        }
+        
+        function displayLunarEclipses() {
+            const container = document.getElementById('lunarSection');
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${eclipseData.lunar.map((eclipse, index) => createEclipseCard(eclipse, 'lunar', index)).join('')}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
+    <script>
+        function createEclipseCard(eclipse, type, index) {
+            const date = new Date(eclipse.date);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            const badgeClass = type === 'solar' ? 'solar-badge' : 'lunar-badge';
+            
+            return `
+                <div class="ios-card p-6 border-card slide-up" style="animation-delay: ${index * 0.1}s">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="eclipse-type-badge ${badgeClass}">
+                            <i class="fas ${type === 'solar' ? 'fa-sun' : 'fa-moon'} mr-2"></i>
+                            ${eclipse.type}
+                        </span>
+                    </div>
+                    <p class="card-title mb-3">${formattedDate}</p>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="info-label">Start</span>
+                            <span class="time-display">${formatTime(eclipse.startTime)}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="info-label">End</span>
+                            <span class="time-display">${formatTime(eclipse.endTime)}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="info-label">Duration</span>
+                            <span class="info-value">${eclipse.duration}</span>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <p class="info-label mb-1">Visible in</p>
+                            <p class="text-sm text-gray-700">${eclipse.visibility}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            const allEclipses = [
+                ...eclipseData.solar.map(e => ({...e, type: 'Solar'})),
+                ...eclipseData.lunar.map(e => ({...e, type: 'Lunar'}))
+            ].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const nextEclipse = allEclipses.find(eclipse => new Date(eclipse.date) > new Date());
+            
+            if (!nextEclipse) {
+                document.getElementById('countdownContainer').innerHTML = `
+                    <div class="text-center">
+                        <p class="text-gray-500">No upcoming eclipses in the database</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const eclipseDate = new Date(nextEclipse.date + 'T' + nextEclipse.startTime + ':00+05:30');
+            
+            countdownInterval = setInterval(() => {
+                const now = new Date();
+                const diff = eclipseDate - now;
+                
+                if (diff <= 0) {
+                    document.getElementById('countdownContainer').innerHTML = `
+                        <div class="text-center">
+                            <h3 class="card-title mb-2">Eclipse in Progress</h3>
+                            <p class="card-subtitle">${nextEclipse.type} Eclipse is happening now</p>
+                            <p class="text-sm text-gray-500 mt-2">Start: ${formatTime(nextEclipse.startTime)} | End: ${formatTime(nextEclipse.endTime)}</p>
+                        </div>
+                    `;
+                    clearInterval(countdownInterval);
+                    return;
+                }
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('countdownContainer').innerHTML = `
+                    <div class="text-center">
+                        <h3 class="card-title mb-4">${nextEclipse.type} Eclipse</h3>
+                        <p class="card-subtitle mb-2">${eclipseDate.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })}</p>
+                        <p class="text-sm text-gray-500 mb-6">Start: ${formatTime(nextEclipse.startTime)} | End: ${formatTime(nextEclipse.endTime)}</p>
+                        <p class="text-sm text-gray-500 mb-8">Visible in: ${nextEclipse.visibility}</p>
+                        <div class="flex justify-center space-x-3">
+                            <div class="countdown-box">
+                                <div class="countdown-number">${days}</div>
+                                <div class="countdown-label">Days</div>
+                            </div>
+                            <div class="countdown-box">
+                                <div class="countdown-number">${hours}</div>
+                                <div class="countdown-label">Hours</div>
+                            </div>
+                            <div class="countdown-box">
+                                <div class="countdown-number">${minutes}</div>
+                                <div class="countdown-label">Mins</div>
+                            </div>
+                            <div class="countdown-box">
+                                <div class="countdown-number">${seconds}</div>
+                                <div class="countdown-label">Secs</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
